@@ -8,6 +8,7 @@ import (
 
 	"fmt"
 
+	"github.com/ethereum/go-ethereum"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -294,11 +295,27 @@ func relayFromCosmosToEth(ctx context.Context, cmd *cobra.Command, txHash string
 
 	txOpts := utils.GetTransactOpts(ctx, ethClient, ethChainIDBigInt, ethPrivKey)
 
+	msg := ethereum.CallMsg{
+		From:  txOpts.From,
+		To:    &ics26Address,
+		Value: txOpts.Value,
+		Data:  resp.Tx,
+		// if you remove these gas options, it still reverts, not sure they are
+		// required for the estimation though
+		GasPrice:  txOpts.GasPrice,
+		GasFeeCap: txOpts.GasFeeCap,
+		GasTipCap: txOpts.GasTipCap,
+	}
+	gasLimt, err := ethClient.EstimateGas(ctx, msg)
+	if err != nil {
+		panic(err)
+	}
+
 	unsignedTx := ethtypes.NewTransaction(
 		txOpts.Nonce.Uint64(),
 		ics26Address,
 		txOpts.Value,
-		15_000_000,
+		gasLimt,
 		txOpts.GasPrice,
 		resp.Tx,
 	)
