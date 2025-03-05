@@ -300,15 +300,10 @@ func relayFromCosmosToEth(ctx context.Context, cmd *cobra.Command, txHash string
 		To:    &ics26Address,
 		Value: txOpts.Value,
 		Data:  resp.Tx,
-		// if you remove these gas options, it still reverts, not sure they are
-		// required for the estimation though
-		GasPrice:  txOpts.GasPrice,
-		GasFeeCap: txOpts.GasFeeCap,
-		GasTipCap: txOpts.GasTipCap,
 	}
 	gasLimt, err := ethClient.EstimateGas(ctx, msg)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to estimate gas: %w", err)
 	}
 
 	unsignedTx := ethtypes.NewTransaction(
