@@ -71,6 +71,7 @@ func GetTransactOpts(ctx context.Context, ethClient *ethclient.Client, chainID *
 
 		txOpts.GasTipCap = gasTipCap
 		txOpts.GasFeeCap = gasFeeCap
+		txOpts.Nonce = big.NewInt(int64(nonce))
 	} else {
 
 		suggestedTip, err := ethClient.SuggestGasTipCap(ctx)
